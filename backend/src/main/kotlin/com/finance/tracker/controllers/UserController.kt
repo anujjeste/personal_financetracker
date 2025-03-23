@@ -16,18 +16,28 @@ class UserController(
     private val authenticationManager: AuthenticationManager
 ) {
 
+    // Allow requests from React frontend at localhost:3000
+    @CrossOrigin(origins = ["http://localhost:3000"])
     @PostMapping("/register")
-    fun registerUser(@RequestParam username: String, @RequestParam password: String): ResponseEntity<User> {
-        val newUser = userService.registerUser(username, password)
-        return ResponseEntity.ok(newUser)
+    fun registerUser(@RequestBody user: User): ResponseEntity<User> {
+        val savedUser = userService.registerUser(user.username, user.password)
+        return ResponseEntity.ok(savedUser)
     }
 
+    @CrossOrigin(origins = ["http://localhost:3000"])
     @PostMapping("/login")
-    fun loginUser(@RequestParam username: String, @RequestParam password: String): ResponseEntity<Map<String, String>> {
-        val authentication = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(username, password)
-        )
-        val token = jwtUtil.generateToken(authentication.principal as org.springframework.security.core.userdetails.User)
-        return ResponseEntity.ok(mapOf("token" to token))
+    fun loginUser(
+        @RequestParam username: String,
+        @RequestParam password: String
+    ): ResponseEntity<Any> {
+        return try {
+            val authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(username, password)
+            )
+            val token = jwtUtil.generateToken(authentication.principal as org.springframework.security.core.userdetails.User)
+            ResponseEntity.ok(mapOf("token" to token))
+        } catch (ex: Exception) {
+            ResponseEntity.status(403).body(mapOf("error" to "Login failed: ${ex.message}"))
+        }
     }
 }

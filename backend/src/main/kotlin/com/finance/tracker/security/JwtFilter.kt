@@ -4,7 +4,6 @@ import com.finance.tracker.services.UserService
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -29,8 +28,9 @@ class JwtFilter(private val jwtUtil: JwtUtil, private val userService: UserServi
             val token = authorizationHeader.substring(7)
             val username = jwtUtil.extractUsername(token)
 
-            if (username != null && SecurityContextHolder.getContext().authentication == null) {
+            if (SecurityContextHolder.getContext().authentication == null) {
                 val userDetails: UserDetails = userService.loadUserByUsername(username)
+
                 if (jwtUtil.validateToken(token, userDetails)) {
                     val authToken = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
                     authToken.details = WebAuthenticationDetailsSource().buildDetails(request)

@@ -3,6 +3,7 @@ package com.finance.tracker.security
 import com.finance.tracker.services.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
@@ -17,7 +18,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(private val jwtFilter: JwtFilter, private val userService: UserService) {
+class SecurityConfig(
+    private val jwtUtil: JwtUtil,
+    @Lazy private val userService: UserService
+) {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
@@ -37,19 +41,26 @@ class SecurityConfig(private val jwtFilter: JwtFilter, private val userService: 
         return authConfig.authenticationManager
     }
 
+    //
+    @Bean
+    fun jwtFilter(): JwtFilter {
+        return JwtFilter(jwtUtil, userService)
+    }
+
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() }  // Disable CSRF for REST API
+            .csrf { it.disable() }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/users/register", "/api/users/login").permitAll()  // Allow public access
-                it.anyRequest().authenticated()  // Require authentication for all other endpoints
+                it.requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                it.anyRequest().authenticated()
             }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
-
 }

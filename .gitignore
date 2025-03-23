@@ -1,0 +1,25 @@
+# === Gradle-related ===
+**/build/
+**/.gradle/
+.gradle/
+!gradlew
+!gradlew.bat
+
+# === IntelliJ/IDEA files ===
+.idea/
+*.iml
+
+# === VS Code files ===
+.vscode/
+
+# === Logs & temp files ===
+*.log
+
+# === OS-specific ===
+.DS_Store
+Thumbs.db
+
+# === Node-related (frontend) ===
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
