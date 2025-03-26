@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,7 +15,8 @@ function Login() {
       });
       alert('Login successful');
       console.log('Token:', response.data.token);
-      localStorage.setItem('token', response.data.token); // Save token
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
     } catch (error) {
       alert('Login failed');
       console.error(error.response?.data || error.message);
