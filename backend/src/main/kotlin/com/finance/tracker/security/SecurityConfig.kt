@@ -52,7 +52,10 @@ class SecurityConfig(
         http
             .csrf { it.disable() }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                it.requestMatchers("/api/users/register",
+                    "/api/users/login",
+                    "/api/transactions/**",
+                    "/api/budget/**").permitAll()
                 it.anyRequest().authenticated()
             }
             .sessionManagement {

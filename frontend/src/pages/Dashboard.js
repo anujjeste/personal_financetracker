@@ -1,101 +1,81 @@
-// src/pages/Dashboard.js
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const Dashboard = () => {
+function Dashboard() {
   const [transactions, setTransactions] = useState([]);
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [budget, setBudget] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [budget, setBudget] = useState(0);
 
-  const token = localStorage.getItem('token');
-  const axiosConfig = {
-    headers: { Authorization: `Bearer ${token}` }
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
+
 
   useEffect(() => {
-    fetchTransactions();
-    fetchBudget();
+    axios
+      .get("http://localhost:8080/api/transactions", { headers })
+      .then((res) => setTransactions(res.data))
+      .catch((err) => console.error("Error fetching transactions:", err));
   }, []);
 
-  const fetchTransactions = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/api/transactions', axiosConfig);
-      setTransactions(response.data);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+  // Fetch Budget
+  useEffect(() => {
+    if (userId) {
+      axios
+        .get(`http://localhost:8080/api/budget/user/${userId}`, { headers })
+        .then((res) => setBudget(res.data.amount))
+        .catch((err) => console.error("Error fetching budget:", err));
     }
-  };
+  }, [userId]);
 
-  const fetchBudget = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/api/budget', axiosConfig);
-      setBudget(response.data);
-    } catch (error) {
-      console.error('Error fetching budget:', error);
-    }
-  };
-
-  const handleAddTransaction = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(
-        'http://localhost:8080/api/transactions',
-        { amount, description },
-        axiosConfig
-      );
-      setAmount('');
-      setDescription('');
-      fetchTransactions();
-    } catch (error) {
-      console.error('Error adding transaction:', error);
-    }
+  //  Add Transaction
+  const handleAddTransaction = () => {
+    const newTransaction = { amount, description };
+    axios
+      .post("http://localhost:8080/api/transactions", newTransaction, { headers })
+      .then((res) => {
+        setTransactions([...transactions, res.data]);
+        setAmount("");
+        setDescription("");
+      })
+      .catch((err) => console.error("Error adding transaction:", err));
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Welcome to BudgetMate Dashboard</h2>
+    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
+      <h2>Dashboard</h2>
+      <p><strong>Monthly Budget:</strong> ₹{budget}</p>
 
-      <div style={{ marginTop: '20px' }}>
-        <h3>Monthly Budget</h3>
-        <p>{budget ? `₹${budget.amount}` : 'Loading budget...'}</p>
-      </div>
+      <h3>Transactions</h3>
+      <ul>
+        {transactions.map((t, index) => (
+          <li key={index}>
+            ₹{t.amount} - {t.description}
+          </li>
+        ))}
+      </ul>
 
-      <div style={{ marginTop: '30px' }}>
-        <h3>Add Transaction</h3>
-        <form onSubmit={handleAddTransaction}>
-          <input
-            type="number"
-            placeholder="Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-          <button type="submit">Add</button>
-        </form>
-      </div>
-
-      <div style={{ marginTop: '40px' }}>
-        <h3>Transactions</h3>
-        {transactions.length === 0 ? (
-          <p>No transactions found.</p>
-        ) : (
-          <ul>
-            {transactions.map((tx) => (
-              <li key={tx.id}>{tx.description} - ₹{tx.amount}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <h3>Add Transaction</h3>
+      <input
+        type="number"
+        placeholder="Amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button onClick={handleAddTransaction}>Add</button>
     </div>
   );
-};
+}
 
 export default Dashboard;

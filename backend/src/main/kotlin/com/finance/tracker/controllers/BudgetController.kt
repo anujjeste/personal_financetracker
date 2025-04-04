@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping("/api/budget")
 class BudgetController(private val budgetService: BudgetService) {
 
     @GetMapping("/user/{userId}")

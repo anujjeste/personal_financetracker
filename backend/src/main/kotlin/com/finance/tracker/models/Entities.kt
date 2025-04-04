@@ -49,7 +49,7 @@ data class Category(
 )
 
 @Entity
-@Table(name = "budgets")
+@Table(name = "budget")
 data class Budget(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
